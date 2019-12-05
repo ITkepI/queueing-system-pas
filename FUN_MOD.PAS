@@ -7,10 +7,10 @@ uses BASE_TYPES;
 type
 
   generate_obj = object
-
-    deviceLambda: real;
+  
+    deviceLambda: real; {Интенсивность прибора}
     maxDeviceLambda: real;
-    dDeviceLambda: real;
+    dDeviceLambda: real; {Разница между максимальной и текущей лямбдой}
     function tay(nmin: byte): real;
 
   end;
@@ -28,8 +28,8 @@ type
   status_obj = object
 
     nmin, inbuf: byte;
-    tosv: real;
-    tpost: real_arr_3;
+    tosv: real; {Время окончания работы прибора}
+    tpost: real_arr_3; {Время прихода последней заявки}
 
     procedure init;
     function minimum_num: byte;
@@ -92,7 +92,7 @@ begin
   for i := 1 to n do
     r := r * (random(99)+1) / 100;
 
-  tay := -1/lambda*ln(r);
+  tay := -1/lambda*ln(r); {Новый интервал времени}
 
 end;
 
@@ -101,7 +101,7 @@ var
   i: byte;
 begin
 
-  tosv := 0;
+  tosv := 0; {Время окончания работы прибора}
   for i := 1 to 3 do tpost[i] := generate.tay(i);
 
 end;
@@ -202,7 +202,7 @@ begin
 
 end;
 
-procedure status_obj.BOOS;
+procedure status_obj.BOOS; {Не помню, как расшифровывается, но ЭТО ВАЖНО!}
 begin
 
   nmin := minimum_num;
@@ -213,20 +213,20 @@ begin
     if BMS.buf[1].n <> BMS.empty then
     begin
 
-      BMS.r_from_bufer;
+      BMS.r_from_bufer;  {считивания данных (время прихода заявки и номер потока, от которого пришла заявка) заявки с буфера}
 
       tosv := tosv + generate.tay(4);
-      calculate.kolob[BMS.nomob] := calculate.kolob[BMS.nomob] + 1;
+      calculate.kolob[BMS.nomob] := calculate.kolob[BMS.nomob] + 1; {nomob - номер потока, от которого в буфере сидит заявка}
 
     end
    else
-    begin
+    begin 
 
-      tosv := tosv + generate.tay(4);
-      calculate.kolob[nmin] := calculate.kolob[nmin] + 1;
+      tosv := tosv + generate.tay(4);                     {Генерируем новое интервал времени осовобождения прибора(4)}
+      calculate.kolob[nmin] := calculate.kolob[nmin] + 1; {kolob - счётчик количества обработанных заявок}
 
-      tpost[nmin] := tpost[nmin] + generate.tay(nmin);
-      calculate.kol[nmin] := calculate.kol[nmin] + 1;
+      tpost[nmin] := tpost[nmin] + generate.tay(nmin);    {nmin - ИНДЕКС потока заявок с минимальным временем прихода последеней заявки}
+      calculate.kol[nmin] := calculate.kol[nmin] + 1;     {kol - счётчик ОБЩЕГО количества заявок}
 
     end;
 
@@ -237,7 +237,7 @@ begin
     if BMS.buf[2].n <> BMS.empty then
     begin
 
-      calculate.kotk[nmin] := calculate.kotk[nmin] + 1;
+      calculate.kotk[nmin] := calculate.kotk[nmin] + 1; {kotk - счётчик количества ОТКАЗАННЫХ заявок}
 
       tpost[nmin] := tpost[nmin] + generate.tay(nmin);
       calculate.kol[nmin] := calculate.kol[nmin] + 1;
@@ -246,10 +246,10 @@ begin
    else
     begin
 
-      BMS.w_in_bufer;
+      BMS.w_in_bufer; {запись данных (время прихода заявки и номер потока, от которого пришла заявка) заявки в буфера}
 
       tpost[nmin] := tpost[nmin] + generate.tay(nmin);
-      calculate.kol[nmin] := calculate.kol[nmin] + 1;
+      calculate.kol[nmin] := calculate.kol[nmin] + 1; {Заявка пришла, но не обработалась прибором}
 
     end;
 
